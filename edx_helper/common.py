@@ -175,8 +175,7 @@ class WebpageUnit(Unit):
     """
 
     def __init__(self, page_title, content):
-        """
-        """
+        """ """
         super().__init__([], [])
         self.page_title = page_title
         self.content = content
@@ -187,8 +186,9 @@ class Video(object):
     Representation of a single video.
     """
 
-    def __init__(self, video_youtube_url, available_subs_url,
-                 sub_template_url, mp4_urls):
+    def __init__(
+        self, video_youtube_url, available_subs_url, sub_template_url, mp4_urls, video_data_metadata = None, origin_available_subs_url = None
+    ):
         """
         @param video_youtube_url: Youtube link (if any).
         @type video_youtube_url: str or None
@@ -202,6 +202,8 @@ class Video(object):
         @param mp4_urls: List of URLs to mp4 video files.
         @type mp4_urls: [str]
         """
+        self.video_data_metadata = video_data_metadata
+        self.origin_available_subs_url = origin_available_subs_url
         self.video_youtube_url = video_youtube_url
         self.available_subs_url = available_subs_url
         self.sub_template_url = sub_template_url
@@ -212,6 +214,7 @@ class ExitCode(object):
     """
     Class that contains all exit codes of the program.
     """
+
     OK = 0
     MISSING_CREDENTIALS = 1
     WRONG_EMAIL_OR_PASSWORD = 2
@@ -221,8 +224,29 @@ class ExitCode(object):
     NO_DOWNLOADABLE_VIDEO = 6
 
 
-YOUTUBE_DL_CMD = ['youtube-dl', '--ignore-config']
-DEFAULT_CACHE_FILENAME = 'cached_units.cache'
-DEFAULT_FILE_FORMATS = ['e?ps', 'pdf', 'txt', 'doc', 'xls', 'ppt',
-                        'docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp', 'odg',
-                        'zip', 'rar', 'gz', 'mp3', 'R', 'Rmd', 'ipynb', 'py']
+YOUTUBE_DL_CMD = ["youtube-dl", "--ignore-config"]
+DEFAULT_CACHE_FILENAME = "cached_units.cache"
+DEFAULT_FILE_FORMATS = [
+    "e?ps",
+    "pdf",
+    "txt",
+    "doc",
+    "xls",
+    "ppt",
+    "srt",
+    "docx",
+    "xlsx",
+    "pptx",
+    "odt",
+    "ods",
+    "odp",
+    "odg",
+    "zip",
+    "rar",
+    "gz",
+    "mp3",
+    "R",
+    "Rmd",
+    "ipynb",
+    "py",
+]
