@@ -67,6 +67,16 @@ from .utils import (
 
 
 def merge_zh_en_subtitle(zh_text, en_text):
+    zh_text_new = {"start": [], "end": [], "text": []}
+    for start, end, text in zip(zh_text["start"], zh_text["end"], zh_text["text"]):
+        if re.findall(r"字幕组", text):
+            continue
+        else:
+            zh_text_new["start"].append(start)
+            zh_text_new["end"].append(end)
+            zh_text_new["text"].append(text)
+    zh_text = zh_text_new
+
     ret = {"start": [], "end": [], "zh": [], "en": []}
     zh_len = len(zh_text["start"])
     en_len = len(en_text["start"])
@@ -151,7 +161,12 @@ def edx_json2srt_zh_en(o):
     for i, (s, e, zh, en) in enumerate(zip(o["start"], o["end"], o["zh"], o["en"])):
         zhl = zh.lower()
         enl = en.lower()
-        if (zhl == "null" and enl == "none") or (zhl == "none" and enl == "none")  or (zhl == "null" and enl == "null")  or (zhl == "none" and enl == "null"):
+        if (
+            (zhl == "null" and enl == "none")
+            or (zhl == "none" and enl == "none")
+            or (zhl == "null" and enl == "null")
+            or (zhl == "none" and enl == "null")
+        ):
             continue
 
         if change_flag:
@@ -933,8 +948,10 @@ def _subtitles_info(video, target_dir):
     downloads = {}
     video_filename = None
     if video.video_data_metadata:
-        if (len(video.video_data_metadata) > 0) and video.video_data_metadata[0].get('sources'):        
-            video_file = video.video_data_metadata[0]['sources'][0]
+        if (len(video.video_data_metadata) > 0) and video.video_data_metadata[0].get(
+            "sources"
+        ):
+            video_file = video.video_data_metadata[0]["sources"][0]
             video_filename = video_file.split("/")[-1].split(".")[0]
     if video_filename is None:
         characters = string.ascii_letters + string.digits
@@ -951,17 +968,22 @@ def _subtitles_info(video, target_dir):
             try:
                 support_subs = requests.get(url)
                 support_subs_list = eval(support_subs.text)
-                filter_support_subs_list = [subs for subs in support_subs_list if subs in ['zh', 'en']]
+                filter_support_subs_list = [
+                    subs for subs in support_subs_list if subs in ["zh", "en"]
+                ]
                 break
             except Exception as e:
-                logging.info(f"get subtitle with error({e}), retry {retry}/3, if retry 3 failed and will pass get, url: {url}")
+                logging.info(
+                    f"get subtitle with error({e}), retry {retry}/3, if retry 3 failed and will pass get, url: {url}"
+                )
                 retry += 1
-                filter_support_subs_list=['zh', 'en']
+                filter_support_subs_list = ["zh", "en"]
                 import time
+
                 time.sleep(10)
         for subs in filter_support_subs_list:
             url = video.sub_template_url % subs
-            video_file = video.video_data_metadata[0]['sources'][0]
+            video_file = video.video_data_metadata[0]["sources"][0]
             filename = video_filename + f".{subs}.srt"
             if not filename or not os.path.exists(os.path.join(target_dir, filename)):
                 downloads[url] = filename
@@ -1157,9 +1179,9 @@ def download_video(video, args, target_dir, filename_prefix, headers):
                     zh_url = url
                     zh_name = filename
 
-        if zh_url and en_url:     
+        if zh_url and en_url:
             with open(args.cookies, "r") as f:
-                cookies = f.read() 
+                cookies = f.read()
                 cookies_list = cookies.split(";")
                 cookies_list = [cook.strip() for cook in cookies_list]
                 cookies_dict = {}
@@ -1173,8 +1195,12 @@ def download_video(video, args, target_dir, filename_prefix, headers):
                     "Content-Type": "application/json",  # 如果发送JSON数据，这个头部很常见
                 }
 
-                zh_response = requests.get(zh_url, headers=headers, cookies=cookies_dict)
-                en_response = requests.get(en_url, headers=headers, cookies=cookies_dict)
+                zh_response = requests.get(
+                    zh_url, headers=headers, cookies=cookies_dict
+                )
+                en_response = requests.get(
+                    en_url, headers=headers, cookies=cookies_dict
+                )
 
                 # 检查请求是否成功（状态码200表示成功）
                 if zh_response.status_code == 200 and en_response.status_code == 200:
@@ -1186,19 +1212,22 @@ def download_video(video, args, target_dir, filename_prefix, headers):
                     json_name = re.sub(".srt", ".json", en_name)
 
                     file_path = os.path.join(target_dir, "zh-" + json_name)
-                    with open(file_path, "w") as f:
-                        json.dump(zh_text, f, ensure_ascii=False)
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        json.dump(zh_text, f, ensure_ascii=False, indent=4)
                     file_path = os.path.join(target_dir, "en-" + json_name)
-                    with open(file_path, "w") as f:
-                        json.dump(en_text, f, ensure_ascii=False)
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        json.dump(en_text, f, ensure_ascii=False, indent=4)
                     ret = merge_zh_en_subtitle(zh_text, en_text)
                     x = edx_json2srt_zh_en(ret)
 
+                    file_path = os.path.join(target_dir, "zh_en-" + en_name)
                     with open(file_path, "w", encoding="UTF-8") as f:
                         f.write(x)
                         f.flush()
                 else:
-                    logging.info(f"subtitle: find en and zh subtitle failed, and pass\nzh_url: {zh_url}\nen_url: {en_url}")
+                    logging.info(
+                        f"subtitle: find en and zh subtitle failed, and pass\nzh_url: {zh_url}\nen_url: {en_url}"
+                    )
 
 
 def download_unit(unit, args, target_dir, filename_prefix, headers):
